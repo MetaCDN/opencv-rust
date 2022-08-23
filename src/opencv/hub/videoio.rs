@@ -122,24 +122,6 @@ pub const CAP_OPENNI_VGA_30HZ: i32 = 0;
 pub const CAP_PROP_APERTURE: i32 = 17008;
 /// Automatically trigger frame capture if camera is configured with software trigger
 pub const CAP_PROP_ARAVIS_AUTOTRIGGER: i32 = 600;
-/// (read-only) Index of the first audio channel for .retrieve() calls. That audio channel number continues enumeration after video channels.
-pub const CAP_PROP_AUDIO_BASE_INDEX: i32 = 63;
-/// (open, read) Alternative definition to bits-per-sample, but with clear handling of 32F / 32S
-pub const CAP_PROP_AUDIO_DATA_DEPTH: i32 = 61;
-/// (read-only) Audio position is measured in samples. Accurate audio sample timestamp of previous grabbed fragment. See CAP_PROP_AUDIO_SAMPLES_PER_SECOND and CAP_PROP_AUDIO_SHIFT_NSEC.
-pub const CAP_PROP_AUDIO_POS: i32 = 59;
-/// (open, read) determined from file/codec input. If not specified, then selected audio sample rate is 44100
-pub const CAP_PROP_AUDIO_SAMPLES_PER_SECOND: i32 = 62;
-/// (read only) Contains the time difference between the start of the audio stream and the video stream in nanoseconds. Positive value means that audio is started after the first video frame. Negative value means that audio is started before the first video frame.
-pub const CAP_PROP_AUDIO_SHIFT_NSEC: i32 = 60;
-/// (**open-only**) Specify stream in multi-language media files, -1 - disable audio processing or microphone. Default value is -1.
-pub const CAP_PROP_AUDIO_STREAM: i32 = 58;
-/// (open, read) Enables audio synchronization.
-pub const CAP_PROP_AUDIO_SYNCHRONIZE: i32 = 66;
-/// (read-only) Number of audio channels in the selected audio stream (mono, stereo, etc)
-pub const CAP_PROP_AUDIO_TOTAL_CHANNELS: i32 = 64;
-/// (read-only) Number of audio streams.
-pub const CAP_PROP_AUDIO_TOTAL_STREAMS: i32 = 65;
 pub const CAP_PROP_AUTOFOCUS: i32 = 39;
 /// DC1394: exposure control done by camera, user can adjust reference level using this feature.
 pub const CAP_PROP_AUTO_EXPOSURE: i32 = 21;
@@ -155,8 +137,6 @@ pub const CAP_PROP_BRIGHTNESS: i32 = 10;
 pub const CAP_PROP_BUFFERSIZE: i32 = 38;
 /// Video input or Channel Number (only for those cameras that support)
 pub const CAP_PROP_CHANNEL: i32 = 43;
-/// Positive index indicates that returning extra data is supported by the video back end.  This can be retrieved as cap.retrieve(data, <returned index>).  E.g. When reading from a h264 encoded RTSP stream, the FFmpeg backend could return the SPS and/or PPS if available (if sent in reply to a DESCRIBE request), from calls to cap.retrieve(data, <returned index>).
-pub const CAP_PROP_CODEC_EXTRADATA_INDEX: i32 = 68;
 /// (read-only) codec's pixel format. 4-character code - see VideoWriter::fourcc . Subset of [AV_PIX_FMT_*](https://github.com/FFmpeg/FFmpeg/blob/master/libavcodec/raw.c) or -1 if unknown
 pub const CAP_PROP_CODEC_PIXEL_FORMAT: i32 = 46;
 /// Contrast of the image (only for cameras).
@@ -237,8 +217,6 @@ pub const CAP_PROP_IOS_DEVICE_TORCH: i32 = 9005;
 pub const CAP_PROP_IOS_DEVICE_WHITEBALANCE: i32 = 9004;
 pub const CAP_PROP_IRIS: i32 = 36;
 pub const CAP_PROP_ISO_SPEED: i32 = 30;
-/// FFmpeg back-end only - Indicates whether the Last Raw Frame (LRF), output from VideoCapture::read() when VideoCapture is initialized with VideoCapture::open(CAP_FFMPEG, {CAP_PROP_FORMAT, -1}) or VideoCapture::set(CAP_PROP_FORMAT,-1) is called before the first call to VideoCapture::read(), contains encoded data for a key frame.
-pub const CAP_PROP_LRF_HAS_KEY_FRAME: i32 = 67;
 /// Backend-specific value indicating the current capture mode.
 pub const CAP_PROP_MODE: i32 = 9;
 pub const CAP_PROP_MONOCHROME: i32 = 19;
@@ -261,8 +239,6 @@ pub const CAP_PROP_OPENNI_OUTPUT_MODE: i32 = 100;
 /// sets this view point to its normal one (if the flag is "off").
 pub const CAP_PROP_OPENNI_REGISTRATION: i32 = 104;
 pub const CAP_PROP_OPENNI_REGISTRATION_ON: i32 = 104;
-/// (**open-only**) timeout in milliseconds for opening a video capture (applicable for FFmpeg back-end only)
-pub const CAP_PROP_OPEN_TIMEOUT_MSEC: i32 = 53;
 /// if true - rotates output frames of CvCapture considering video file's metadata  (applicable for FFmpeg back-end only) (https://github.com/opencv/opencv/issues/15499)
 pub const CAP_PROP_ORIENTATION_AUTO: i32 = 49;
 /// (read-only) Frame rotation defined by stream meta (applicable for FFmpeg back-end only)
@@ -288,8 +264,6 @@ pub const CAP_PROP_PVAPI_FRAMESTARTTRIGGERMODE: i32 = 301;
 pub const CAP_PROP_PVAPI_MULTICASTIP: i32 = 300;
 /// Pixel format.
 pub const CAP_PROP_PVAPI_PIXELFORMAT: i32 = 306;
-/// (**open-only**) timeout in milliseconds for reading from a video capture (applicable for FFmpeg back-end only)
-pub const CAP_PROP_READ_TIMEOUT_MSEC: i32 = 54;
 /// Rectification flag for stereo cameras (note: only supported by DC1394 v 2.x backend currently).
 pub const CAP_PROP_RECTIFICATION: i32 = 18;
 pub const CAP_PROP_ROLL: i32 = 35;
@@ -304,15 +278,10 @@ pub const CAP_PROP_SETTINGS: i32 = 37;
 pub const CAP_PROP_SHARPNESS: i32 = 20;
 /// Exposure speed. Can be readonly, depends on camera program.
 pub const CAP_PROP_SPEED: i32 = 17007;
-pub const CAP_PROP_STREAM_OPEN_TIME_USEC: i32 = 55;
 pub const CAP_PROP_TEMPERATURE: i32 = 23;
 pub const CAP_PROP_TILT: i32 = 34;
 pub const CAP_PROP_TRIGGER: i32 = 24;
 pub const CAP_PROP_TRIGGER_DELAY: i32 = 25;
-/// (**open-only**) Specify video stream, 0-based index. Use -1 to disable video stream from file or IP cameras. Default value is 0.
-pub const CAP_PROP_VIDEO_STREAM: i32 = 57;
-/// (read-only) Number of video channels
-pub const CAP_PROP_VIDEO_TOTAL_CHANNELS: i32 = 56;
 /// Enter liveview mode.
 pub const CAP_PROP_VIEWFINDER: i32 = 17010;
 /// white-balance color temperature
@@ -677,7 +646,7 @@ pub const CAP_WINRT: i32 = 1410;
 pub const CAP_XIAPI: i32 = 1100;
 /// XINE engine (Linux)
 pub const CAP_XINE: i32 = 2400;
-pub const CV__CAP_PROP_LATEST: i32 = 69;
+pub const CV__CAP_PROP_LATEST: i32 = 53;
 pub const CV__VIDEOWRITER_PROP_LATEST: i32 = 9;
 /// Defaults to CV_8U.
 pub const VIDEOWRITER_PROP_DEPTH: i32 = 5;
@@ -921,38 +890,7 @@ pub enum VideoCaptureProperties {
 	CAP_PROP_HW_DEVICE = 51,
 	/// (**open-only**) If non-zero, create new OpenCL context and bind it to current thread. The OpenCL context created with Video Acceleration context attached it (if not attached yet) for optimized GPU data copy between HW accelerated decoder and cv::UMat.
 	CAP_PROP_HW_ACCELERATION_USE_OPENCL = 52,
-	/// (**open-only**) timeout in milliseconds for opening a video capture (applicable for FFmpeg back-end only)
-	CAP_PROP_OPEN_TIMEOUT_MSEC = 53,
-	/// (**open-only**) timeout in milliseconds for reading from a video capture (applicable for FFmpeg back-end only)
-	CAP_PROP_READ_TIMEOUT_MSEC = 54,
-	CAP_PROP_STREAM_OPEN_TIME_USEC = 55,
-	/// (read-only) Number of video channels
-	CAP_PROP_VIDEO_TOTAL_CHANNELS = 56,
-	/// (**open-only**) Specify video stream, 0-based index. Use -1 to disable video stream from file or IP cameras. Default value is 0.
-	CAP_PROP_VIDEO_STREAM = 57,
-	/// (**open-only**) Specify stream in multi-language media files, -1 - disable audio processing or microphone. Default value is -1.
-	CAP_PROP_AUDIO_STREAM = 58,
-	/// (read-only) Audio position is measured in samples. Accurate audio sample timestamp of previous grabbed fragment. See CAP_PROP_AUDIO_SAMPLES_PER_SECOND and CAP_PROP_AUDIO_SHIFT_NSEC.
-	CAP_PROP_AUDIO_POS = 59,
-	/// (read only) Contains the time difference between the start of the audio stream and the video stream in nanoseconds. Positive value means that audio is started after the first video frame. Negative value means that audio is started before the first video frame.
-	CAP_PROP_AUDIO_SHIFT_NSEC = 60,
-	/// (open, read) Alternative definition to bits-per-sample, but with clear handling of 32F / 32S
-	CAP_PROP_AUDIO_DATA_DEPTH = 61,
-	/// (open, read) determined from file/codec input. If not specified, then selected audio sample rate is 44100
-	CAP_PROP_AUDIO_SAMPLES_PER_SECOND = 62,
-	/// (read-only) Index of the first audio channel for .retrieve() calls. That audio channel number continues enumeration after video channels.
-	CAP_PROP_AUDIO_BASE_INDEX = 63,
-	/// (read-only) Number of audio channels in the selected audio stream (mono, stereo, etc)
-	CAP_PROP_AUDIO_TOTAL_CHANNELS = 64,
-	/// (read-only) Number of audio streams.
-	CAP_PROP_AUDIO_TOTAL_STREAMS = 65,
-	/// (open, read) Enables audio synchronization.
-	CAP_PROP_AUDIO_SYNCHRONIZE = 66,
-	/// FFmpeg back-end only - Indicates whether the Last Raw Frame (LRF), output from VideoCapture::read() when VideoCapture is initialized with VideoCapture::open(CAP_FFMPEG, {CAP_PROP_FORMAT, -1}) or VideoCapture::set(CAP_PROP_FORMAT,-1) is called before the first call to VideoCapture::read(), contains encoded data for a key frame.
-	CAP_PROP_LRF_HAS_KEY_FRAME = 67,
-	/// Positive index indicates that returning extra data is supported by the video back end.  This can be retrieved as cap.retrieve(data, <returned index>).  E.g. When reading from a h264 encoded RTSP stream, the FFmpeg backend could return the SPS and/or PPS if available (if sent in reply to a DESCRIBE request), from calls to cap.retrieve(data, <returned index>).
-	CAP_PROP_CODEC_EXTRADATA_INDEX = 68,
-	CV__CAP_PROP_LATEST = 69,
+	CV__CAP_PROP_LATEST = 53,
 }
 
 opencv_type_enum! { crate::videoio::VideoCaptureProperties }
@@ -1199,7 +1137,7 @@ pub trait VideoCaptureTrait: crate::videoio::VideoCaptureTraitConst {
 		Ok(ret)
 	}
 	
-	/// Opens a video file or a capturing device or an IP video stream for video capturing with API Preference and parameters
+	/// Opens a camera for video capturing
 	/// 
 	/// This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts.
 	/// 
@@ -1241,7 +1179,7 @@ pub trait VideoCaptureTrait: crate::videoio::VideoCaptureTraitConst {
 		Ok(ret)
 	}
 	
-	/// Opens a camera for video capturing with API Preference and parameters
+	/// Returns true if video capturing has been initialized already.
 	/// 
 	/// This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts.
 	/// 

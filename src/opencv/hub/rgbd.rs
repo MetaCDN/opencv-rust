@@ -8,14 +8,11 @@
 	clippy::unused_unit,
 )]
 //! # RGB-Depth Processing
-//! 
-//! @ref kinfu_icp
 use crate::{mod_prelude::*, core, sys, types};
 pub mod prelude {
-	pub use { super::Linemod_TemplateTraitConst, super::Linemod_TemplateTrait, super::Linemod_QuantizedPyramidConst, super::Linemod_QuantizedPyramid, super::Linemod_ModalityConst, super::Linemod_Modality, super::Linemod_ColorGradientTraitConst, super::Linemod_ColorGradientTrait, super::Linemod_DepthNormalTraitConst, super::Linemod_DepthNormalTrait, super::Linemod_MatchTraitConst, super::Linemod_MatchTrait, super::Linemod_DetectorTraitConst, super::Linemod_DetectorTrait, super::RgbdNormalsTraitConst, super::RgbdNormalsTrait, super::DepthCleanerTraitConst, super::DepthCleanerTrait, super::RgbdPlaneTraitConst, super::RgbdPlaneTrait, super::RgbdFrameTraitConst, super::RgbdFrameTrait, super::OdometryFrameTraitConst, super::OdometryFrameTrait, super::OdometryConst, super::Odometry, super::RgbdOdometryTraitConst, super::RgbdOdometryTrait, super::ICPOdometryTraitConst, super::ICPOdometryTrait, super::RgbdICPOdometryTraitConst, super::RgbdICPOdometryTrait, super::FastICPOdometryTraitConst, super::FastICPOdometryTrait, super::Kinfu_VolumeConst, super::Kinfu_Volume, super::Kinfu_VolumeParamsTraitConst, super::Kinfu_VolumeParamsTrait, super::Kinfu_ParamsTraitConst, super::Kinfu_ParamsTrait, super::Kinfu_KinFuConst, super::Kinfu_KinFu, super::Dynafu_DynaFuConst, super::Dynafu_DynaFu, super::ParamsTraitConst, super::ParamsTrait, super::LargeKinfuConst, super::LargeKinfu, super::Kinfu_Detail_PoseGraphConst, super::Kinfu_Detail_PoseGraph, super::ColoredKinfu_ParamsTraitConst, super::ColoredKinfu_ParamsTrait, super::ColoredKinfu_ColoredKinFuConst, super::ColoredKinfu_ColoredKinFu };
+	pub use { super::Linemod_TemplateTraitConst, super::Linemod_TemplateTrait, super::Linemod_QuantizedPyramidConst, super::Linemod_QuantizedPyramid, super::Linemod_ModalityConst, super::Linemod_Modality, super::Linemod_ColorGradientTraitConst, super::Linemod_ColorGradientTrait, super::Linemod_DepthNormalTraitConst, super::Linemod_DepthNormalTrait, super::Linemod_MatchTraitConst, super::Linemod_MatchTrait, super::Linemod_DetectorTraitConst, super::Linemod_DetectorTrait, super::RgbdNormalsTraitConst, super::RgbdNormalsTrait, super::DepthCleanerTraitConst, super::DepthCleanerTrait, super::RgbdPlaneTraitConst, super::RgbdPlaneTrait, super::RgbdFrameTraitConst, super::RgbdFrameTrait, super::OdometryFrameTraitConst, super::OdometryFrameTrait, super::OdometryConst, super::Odometry, super::RgbdOdometryTraitConst, super::RgbdOdometryTrait, super::ICPOdometryTraitConst, super::ICPOdometryTrait, super::RgbdICPOdometryTraitConst, super::RgbdICPOdometryTrait, super::FastICPOdometryTraitConst, super::FastICPOdometryTrait, super::Kinfu_VolumeConst, super::Kinfu_Volume, super::Kinfu_VolumeParamsTraitConst, super::Kinfu_VolumeParamsTrait, super::Kinfu_ParamsTraitConst, super::Kinfu_ParamsTrait, super::Kinfu_KinFuConst, super::Kinfu_KinFu, super::Dynafu_DynaFuConst, super::Dynafu_DynaFu, super::ParamsTraitConst, super::ParamsTrait, super::LargeKinfuConst, super::LargeKinfu, super::Kinfu_Detail_PoseGraphConst, super::Kinfu_Detail_PoseGraph };
 }
 
-pub const Kinfu_VolumeType_COLOREDTSDF: i32 = 2;
 pub const Kinfu_VolumeType_HASHTSDF: i32 = 1;
 pub const Kinfu_VolumeType_TSDF: i32 = 0;
 pub const OdometryFrame_CACHE_ALL: i32 = 3;
@@ -40,7 +37,6 @@ opencv_type_enum! { crate::rgbd::DepthCleaner_DEPTH_CLEANER_METHOD }
 pub enum Kinfu_VolumeType {
 	TSDF = 0,
 	HASHTSDF = 1,
-	COLOREDTSDF = 2,
 }
 
 opencv_type_enum! { crate::rgbd::Kinfu_VolumeType }
@@ -318,701 +314,6 @@ pub fn warp_frame(image: &core::Mat, depth: &core::Mat, mask: &core::Mat, rt: &c
 	return_receive!(unsafe ocvrs_return => ret);
 	let ret = ret.into_result()?;
 	Ok(ret)
-}
-
-/// KinectFusion implementation
-/// 
-/// This class implements a 3d reconstruction algorithm described in
-/// [kinectfusion](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_kinectfusion) paper.
-/// 
-/// It takes a sequence of depth images taken from depth sensor
-/// (or any depth images source such as stereo camera matching algorithm or even raymarching renderer).
-/// The output can be obtained as a vector of points and their normals
-/// or can be Phong-rendered from given camera pose.
-/// 
-/// An internal representation of a model is a voxel cuboid that keeps TSDF values
-/// which are a sort of distances to the surface (for details read the [kinectfusion](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_kinectfusion) article about TSDF).
-/// There is no interface to that representation yet.
-/// 
-/// KinFu uses OpenCL acceleration automatically if available.
-/// To enable or disable it explicitly use cv::setUseOptimized() or cv::ocl::setUseOpenCL().
-/// 
-/// This implementation is based on [kinfu-remake](https://github.com/Nerei/kinfu_remake).
-/// 
-/// Note that the KinectFusion algorithm was patented and its use may be restricted by
-/// the list of patents mentioned in README.md file in this module directory.
-/// 
-/// That's why you need to set the OPENCV_ENABLE_NONFREE option in CMake to use KinectFusion.
-pub trait ColoredKinfu_ColoredKinFuConst {
-	fn as_raw_ColoredKinfu_ColoredKinFu(&self) -> *const c_void;
-
-	/// Get current parameters
-	#[inline]
-	fn get_params(&self) -> Result<crate::rgbd::ColoredKinfu_Params> {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_ColoredKinFu_getParams_const(self.as_raw_ColoredKinfu_ColoredKinFu(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		let ret = unsafe { crate::rgbd::ColoredKinfu_Params::opencv_from_extern(ret) };
-		Ok(ret)
-	}
-	
-	/// Renders a volume into an image
-	/// 
-	/// Renders a 0-surface of TSDF using Phong shading into a CV_8UC4 Mat.
-	/// Light pose is fixed in KinFu params.
-	/// 
-	/// ## Parameters
-	/// * image: resulting image
-	#[inline]
-	fn render(&self, image: &mut dyn core::ToOutputArray) -> Result<()> {
-		output_array_arg!(image);
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_ColoredKinFu_render_const_const__OutputArrayR(self.as_raw_ColoredKinfu_ColoredKinFu(), image.as_raw__OutputArray(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
-	/// Renders a volume into an image
-	/// 
-	/// Renders a 0-surface of TSDF using Phong shading into a CV_8UC4 Mat.
-	/// Light pose is fixed in KinFu params.
-	/// 
-	/// ## Parameters
-	/// * image: resulting image
-	/// * cameraPose: pose of camera to render from. If empty then render from current pose
-	///   which is a last frame camera pose.
-	#[inline]
-	fn render_1(&self, image: &mut dyn core::ToOutputArray, camera_pose: core::Matx44f) -> Result<()> {
-		output_array_arg!(image);
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_ColoredKinFu_render_const_const__OutputArrayR_const_Matx44fR(self.as_raw_ColoredKinfu_ColoredKinFu(), image.as_raw__OutputArray(), &camera_pose, ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
-	/// Gets points, normals and colors of current 3d mesh
-	/// 
-	/// The order of normals corresponds to order of points.
-	/// The order of points is undefined.
-	/// 
-	/// ## Parameters
-	/// * points: vector of points which are 4-float vectors
-	/// * normals: vector of normals which are 4-float vectors
-	/// * colors: vector of colors which are 4-float vectors
-	/// 
-	/// ## C++ default parameters
-	/// * colors: noArray()
-	#[inline]
-	fn get_cloud(&self, points: &mut dyn core::ToOutputArray, normals: &mut dyn core::ToOutputArray, colors: &mut dyn core::ToOutputArray) -> Result<()> {
-		output_array_arg!(points);
-		output_array_arg!(normals);
-		output_array_arg!(colors);
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_ColoredKinFu_getCloud_const_const__OutputArrayR_const__OutputArrayR_const__OutputArrayR(self.as_raw_ColoredKinfu_ColoredKinFu(), points.as_raw__OutputArray(), normals.as_raw__OutputArray(), colors.as_raw__OutputArray(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
-	/// Gets points of current 3d mesh
-	/// 
-	/// The order of points is undefined.
-	/// 
-	/// ## Parameters
-	/// * points: vector of points which are 4-float vectors
-	#[inline]
-	fn get_points(&self, points: &mut dyn core::ToOutputArray) -> Result<()> {
-		output_array_arg!(points);
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_ColoredKinFu_getPoints_const_const__OutputArrayR(self.as_raw_ColoredKinfu_ColoredKinFu(), points.as_raw__OutputArray(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
-	/// Calculates normals for given points
-	/// ## Parameters
-	/// * points: input vector of points which are 4-float vectors
-	/// * normals: output vector of corresponding normals which are 4-float vectors
-	#[inline]
-	fn get_normals(&self, points: &dyn core::ToInputArray, normals: &mut dyn core::ToOutputArray) -> Result<()> {
-		input_array_arg!(points);
-		output_array_arg!(normals);
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_ColoredKinFu_getNormals_const_const__InputArrayR_const__OutputArrayR(self.as_raw_ColoredKinfu_ColoredKinFu(), points.as_raw__InputArray(), normals.as_raw__OutputArray(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
-	/// Get current pose in voxel space
-	#[inline]
-	fn get_pose(&self) -> Result<core::Affine3f> {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_ColoredKinFu_getPose_const(self.as_raw_ColoredKinfu_ColoredKinFu(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
-}
-
-pub trait ColoredKinfu_ColoredKinFu: crate::rgbd::ColoredKinfu_ColoredKinFuConst {
-	fn as_raw_mut_ColoredKinfu_ColoredKinFu(&mut self) -> *mut c_void;
-
-	/// Resets the algorithm
-	/// 
-	/// Clears current model and resets a pose.
-	#[inline]
-	fn reset(&mut self) -> Result<()> {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_ColoredKinFu_reset(self.as_raw_mut_ColoredKinfu_ColoredKinFu(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
-	/// Process next depth frame
-	/// ## Parameters
-	/// * depth: input Mat of depth frame
-	/// * rgb: input Mat of rgb (colored) frame
-	/// 
-	/// ## Returns
-	/// true if succeeded to align new frame with current scene, false if opposite
-	#[inline]
-	fn update(&mut self, depth: &dyn core::ToInputArray, rgb: &dyn core::ToInputArray) -> Result<bool> {
-		input_array_arg!(depth);
-		input_array_arg!(rgb);
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_ColoredKinFu_update_const__InputArrayR_const__InputArrayR(self.as_raw_mut_ColoredKinfu_ColoredKinFu(), depth.as_raw__InputArray(), rgb.as_raw__InputArray(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
-}
-
-impl dyn ColoredKinfu_ColoredKinFu + '_ {
-	#[inline]
-	pub fn create(_params: &core::Ptr<crate::rgbd::ColoredKinfu_Params>) -> Result<core::Ptr<dyn crate::rgbd::ColoredKinfu_ColoredKinFu>> {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_ColoredKinFu_create_const_Ptr_Params_R(_params.as_raw_PtrOfColoredKinfu_Params(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		let ret = unsafe { core::Ptr::<dyn crate::rgbd::ColoredKinfu_ColoredKinFu>::opencv_from_extern(ret) };
-		Ok(ret)
-	}
-	
-}
-pub trait ColoredKinfu_ParamsTraitConst {
-	fn as_raw_ColoredKinfu_Params(&self) -> *const c_void;
-
-	/// frame size in pixels
-	#[inline]
-	fn frame_size(&self) -> core::Size {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_getPropFrameSize_const(self.as_raw_ColoredKinfu_Params(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		ret
-	}
-	
-	/// rgb frame size in pixels
-	#[inline]
-	fn rgb_frame_size(&self) -> core::Size {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_getPropRgb_frameSize_const(self.as_raw_ColoredKinfu_Params(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		ret
-	}
-	
-	#[inline]
-	fn volume_type(&self) -> crate::rgbd::Kinfu_VolumeType {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_getPropVolumeType_const(self.as_raw_ColoredKinfu_Params(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		ret
-	}
-	
-	/// camera intrinsics
-	#[inline]
-	fn intr(&self) -> core::Matx33f {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_getPropIntr_const(self.as_raw_ColoredKinfu_Params(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		ret
-	}
-	
-	/// rgb camera intrinsics
-	#[inline]
-	fn rgb_intr(&self) -> core::Matx33f {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_getPropRgb_intr_const(self.as_raw_ColoredKinfu_Params(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		ret
-	}
-	
-	/// pre-scale per 1 meter for input values
-	/// 
-	/// Typical values are:
-	///      * 5000 per 1 meter for the 16-bit PNG files of TUM database
-	///      * 1000 per 1 meter for Kinect 2 device
-	///      * 1 per 1 meter for the 32-bit float images in the ROS bag files
-	#[inline]
-	fn depth_factor(&self) -> f32 {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_getPropDepthFactor_const(self.as_raw_ColoredKinfu_Params()) };
-		ret
-	}
-	
-	/// Depth sigma in meters for bilateral smooth
-	#[inline]
-	fn bilateral_sigma_depth(&self) -> f32 {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_getPropBilateral_sigma_depth_const(self.as_raw_ColoredKinfu_Params()) };
-		ret
-	}
-	
-	/// Spatial sigma in pixels for bilateral smooth
-	#[inline]
-	fn bilateral_sigma_spatial(&self) -> f32 {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_getPropBilateral_sigma_spatial_const(self.as_raw_ColoredKinfu_Params()) };
-		ret
-	}
-	
-	/// Kernel size in pixels for bilateral smooth
-	#[inline]
-	fn bilateral_kernel_size(&self) -> i32 {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_getPropBilateral_kernel_size_const(self.as_raw_ColoredKinfu_Params()) };
-		ret
-	}
-	
-	/// Number of pyramid levels for ICP
-	#[inline]
-	fn pyramid_levels(&self) -> i32 {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_getPropPyramidLevels_const(self.as_raw_ColoredKinfu_Params()) };
-		ret
-	}
-	
-	/// Resolution of voxel space
-	/// 
-	/// Number of voxels in each dimension.
-	#[inline]
-	fn volume_dims(&self) -> core::Vec3i {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_getPropVolumeDims_const(self.as_raw_ColoredKinfu_Params(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		ret
-	}
-	
-	/// Size of voxel in meters
-	#[inline]
-	fn voxel_size(&self) -> f32 {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_getPropVoxelSize_const(self.as_raw_ColoredKinfu_Params()) };
-		ret
-	}
-	
-	/// Minimal camera movement in meters
-	/// 
-	/// Integrate new depth frame only if camera movement exceeds this value.
-	#[inline]
-	fn tsdf_min_camera_movement(&self) -> f32 {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_getPropTsdf_min_camera_movement_const(self.as_raw_ColoredKinfu_Params()) };
-		ret
-	}
-	
-	/// initial volume pose in meters
-	#[inline]
-	fn volume_pose(&self) -> core::Affine3f {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_getPropVolumePose_const(self.as_raw_ColoredKinfu_Params(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		ret
-	}
-	
-	/// distance to truncate in meters
-	/// 
-	/// Distances to surface that exceed this value will be truncated to 1.0.
-	#[inline]
-	fn tsdf_trunc_dist(&self) -> f32 {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_getPropTsdf_trunc_dist_const(self.as_raw_ColoredKinfu_Params()) };
-		ret
-	}
-	
-	/// max number of frames per voxel
-	/// 
-	/// Each voxel keeps running average of distances no longer than this value.
-	#[inline]
-	fn tsdf_max_weight(&self) -> i32 {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_getPropTsdf_max_weight_const(self.as_raw_ColoredKinfu_Params()) };
-		ret
-	}
-	
-	/// A length of one raycast step
-	/// 
-	/// How much voxel sizes we skip each raycast step
-	#[inline]
-	fn raycast_step_factor(&self) -> f32 {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_getPropRaycast_step_factor_const(self.as_raw_ColoredKinfu_Params()) };
-		ret
-	}
-	
-	/// light pose for rendering in meters
-	#[inline]
-	fn light_pose(&self) -> core::Vec3f {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_getPropLightPose_const(self.as_raw_ColoredKinfu_Params(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		ret
-	}
-	
-	/// distance theshold for ICP in meters
-	#[inline]
-	fn icp_dist_thresh(&self) -> f32 {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_getPropIcpDistThresh_const(self.as_raw_ColoredKinfu_Params()) };
-		ret
-	}
-	
-	/// angle threshold for ICP in radians
-	#[inline]
-	fn icp_angle_thresh(&self) -> f32 {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_getPropIcpAngleThresh_const(self.as_raw_ColoredKinfu_Params()) };
-		ret
-	}
-	
-	/// number of ICP iterations for each pyramid level
-	#[inline]
-	fn icp_iterations(&self) -> core::Vector<i32> {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_getPropIcpIterations_const(self.as_raw_ColoredKinfu_Params()) };
-		let ret = unsafe { core::Vector::<i32>::opencv_from_extern(ret) };
-		ret
-	}
-	
-	/// Threshold for depth truncation in meters
-	/// 
-	/// All depth values beyond this threshold will be set to zero
-	#[inline]
-	fn truncate_threshold(&self) -> f32 {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_getPropTruncateThreshold_const(self.as_raw_ColoredKinfu_Params()) };
-		ret
-	}
-	
-}
-
-pub trait ColoredKinfu_ParamsTrait: crate::rgbd::ColoredKinfu_ParamsTraitConst {
-	fn as_raw_mut_ColoredKinfu_Params(&mut self) -> *mut c_void;
-
-	/// frame size in pixels
-	#[inline]
-	fn set_frame_size(&mut self, val: core::Size) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropFrameSize_Size(self.as_raw_mut_ColoredKinfu_Params(), val.opencv_as_extern()) };
-		ret
-	}
-	
-	/// rgb frame size in pixels
-	#[inline]
-	fn set_rgb_frame_size(&mut self, val: core::Size) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropRgb_frameSize_Size(self.as_raw_mut_ColoredKinfu_Params(), val.opencv_as_extern()) };
-		ret
-	}
-	
-	#[inline]
-	fn set_volume_type(&mut self, val: crate::rgbd::Kinfu_VolumeType) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropVolumeType_VolumeType(self.as_raw_mut_ColoredKinfu_Params(), val) };
-		ret
-	}
-	
-	/// camera intrinsics
-	#[inline]
-	fn set_intr(&mut self, val: core::Matx33f) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropIntr_Matx33f(self.as_raw_mut_ColoredKinfu_Params(), val.opencv_as_extern()) };
-		ret
-	}
-	
-	/// rgb camera intrinsics
-	#[inline]
-	fn set_rgb_intr(&mut self, val: core::Matx33f) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropRgb_intr_Matx33f(self.as_raw_mut_ColoredKinfu_Params(), val.opencv_as_extern()) };
-		ret
-	}
-	
-	/// pre-scale per 1 meter for input values
-	/// 
-	/// Typical values are:
-	///      * 5000 per 1 meter for the 16-bit PNG files of TUM database
-	///      * 1000 per 1 meter for Kinect 2 device
-	///      * 1 per 1 meter for the 32-bit float images in the ROS bag files
-	#[inline]
-	fn set_depth_factor(&mut self, val: f32) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropDepthFactor_float(self.as_raw_mut_ColoredKinfu_Params(), val) };
-		ret
-	}
-	
-	/// Depth sigma in meters for bilateral smooth
-	#[inline]
-	fn set_bilateral_sigma_depth(&mut self, val: f32) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropBilateral_sigma_depth_float(self.as_raw_mut_ColoredKinfu_Params(), val) };
-		ret
-	}
-	
-	/// Spatial sigma in pixels for bilateral smooth
-	#[inline]
-	fn set_bilateral_sigma_spatial(&mut self, val: f32) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropBilateral_sigma_spatial_float(self.as_raw_mut_ColoredKinfu_Params(), val) };
-		ret
-	}
-	
-	/// Kernel size in pixels for bilateral smooth
-	#[inline]
-	fn set_bilateral_kernel_size(&mut self, val: i32) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropBilateral_kernel_size_int(self.as_raw_mut_ColoredKinfu_Params(), val) };
-		ret
-	}
-	
-	/// Number of pyramid levels for ICP
-	#[inline]
-	fn set_pyramid_levels(&mut self, val: i32) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropPyramidLevels_int(self.as_raw_mut_ColoredKinfu_Params(), val) };
-		ret
-	}
-	
-	/// Resolution of voxel space
-	/// 
-	/// Number of voxels in each dimension.
-	#[inline]
-	fn set_volume_dims(&mut self, val: core::Vec3i) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropVolumeDims_Vec3i(self.as_raw_mut_ColoredKinfu_Params(), val.opencv_as_extern()) };
-		ret
-	}
-	
-	/// Size of voxel in meters
-	#[inline]
-	fn set_voxel_size(&mut self, val: f32) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropVoxelSize_float(self.as_raw_mut_ColoredKinfu_Params(), val) };
-		ret
-	}
-	
-	/// Minimal camera movement in meters
-	/// 
-	/// Integrate new depth frame only if camera movement exceeds this value.
-	#[inline]
-	fn set_tsdf_min_camera_movement(&mut self, val: f32) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropTsdf_min_camera_movement_float(self.as_raw_mut_ColoredKinfu_Params(), val) };
-		ret
-	}
-	
-	/// initial volume pose in meters
-	#[inline]
-	fn set_volume_pose(&mut self, val: core::Affine3f) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropVolumePose_Affine3f(self.as_raw_mut_ColoredKinfu_Params(), val.opencv_as_extern()) };
-		ret
-	}
-	
-	/// distance to truncate in meters
-	/// 
-	/// Distances to surface that exceed this value will be truncated to 1.0.
-	#[inline]
-	fn set_tsdf_trunc_dist(&mut self, val: f32) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropTsdf_trunc_dist_float(self.as_raw_mut_ColoredKinfu_Params(), val) };
-		ret
-	}
-	
-	/// max number of frames per voxel
-	/// 
-	/// Each voxel keeps running average of distances no longer than this value.
-	#[inline]
-	fn set_tsdf_max_weight(&mut self, val: i32) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropTsdf_max_weight_int(self.as_raw_mut_ColoredKinfu_Params(), val) };
-		ret
-	}
-	
-	/// A length of one raycast step
-	/// 
-	/// How much voxel sizes we skip each raycast step
-	#[inline]
-	fn set_raycast_step_factor(&mut self, val: f32) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropRaycast_step_factor_float(self.as_raw_mut_ColoredKinfu_Params(), val) };
-		ret
-	}
-	
-	/// light pose for rendering in meters
-	#[inline]
-	fn set_light_pose(&mut self, val: core::Vec3f) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropLightPose_Vec3f(self.as_raw_mut_ColoredKinfu_Params(), val.opencv_as_extern()) };
-		ret
-	}
-	
-	/// distance theshold for ICP in meters
-	#[inline]
-	fn set_icp_dist_thresh(&mut self, val: f32) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropIcpDistThresh_float(self.as_raw_mut_ColoredKinfu_Params(), val) };
-		ret
-	}
-	
-	/// angle threshold for ICP in radians
-	#[inline]
-	fn set_icp_angle_thresh(&mut self, val: f32) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropIcpAngleThresh_float(self.as_raw_mut_ColoredKinfu_Params(), val) };
-		ret
-	}
-	
-	/// number of ICP iterations for each pyramid level
-	#[inline]
-	fn set_icp_iterations(&mut self, mut val: core::Vector<i32>) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropIcpIterations_vector_int_(self.as_raw_mut_ColoredKinfu_Params(), val.as_raw_mut_VectorOfi32()) };
-		ret
-	}
-	
-	/// Threshold for depth truncation in meters
-	/// 
-	/// All depth values beyond this threshold will be set to zero
-	#[inline]
-	fn set_truncate_threshold(&mut self, val: f32) {
-		let ret = unsafe { sys::cv_colored_kinfu_Params_setPropTruncateThreshold_float(self.as_raw_mut_ColoredKinfu_Params(), val) };
-		ret
-	}
-	
-	/// Set Initial Volume Pose
-	/// Sets the initial pose of the TSDF volume.
-	/// ## Parameters
-	/// * R: rotation matrix
-	/// * t: translation vector
-	#[inline]
-	fn set_initial_volume_pose(&mut self, r: core::Matx33f, t: core::Vec3f) -> Result<()> {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_setInitialVolumePose_Matx33f_Vec3f(self.as_raw_mut_ColoredKinfu_Params(), r.opencv_as_extern(), t.opencv_as_extern(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
-	/// Set Initial Volume Pose
-	/// Sets the initial pose of the TSDF volume.
-	/// ## Parameters
-	/// * homogen_tf: 4 by 4 Homogeneous Transform matrix to set the intial pose of TSDF volume
-	#[inline]
-	fn set_initial_volume_pose_1(&mut self, homogen_tf: core::Matx44f) -> Result<()> {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_setInitialVolumePose_Matx44f(self.as_raw_mut_ColoredKinfu_Params(), homogen_tf.opencv_as_extern(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
-}
-
-pub struct ColoredKinfu_Params {
-	ptr: *mut c_void
-}
-
-opencv_type_boxed! { ColoredKinfu_Params }
-
-impl Drop for ColoredKinfu_Params {
-	fn drop(&mut self) {
-		extern "C" { fn cv_ColoredKinfu_Params_delete(instance: *mut c_void); }
-		unsafe { cv_ColoredKinfu_Params_delete(self.as_raw_mut_ColoredKinfu_Params()) };
-	}
-}
-
-unsafe impl Send for ColoredKinfu_Params {}
-
-impl crate::rgbd::ColoredKinfu_ParamsTraitConst for ColoredKinfu_Params {
-	#[inline] fn as_raw_ColoredKinfu_Params(&self) -> *const c_void { self.as_raw() }
-}
-
-impl crate::rgbd::ColoredKinfu_ParamsTrait for ColoredKinfu_Params {
-	#[inline] fn as_raw_mut_ColoredKinfu_Params(&mut self) -> *mut c_void { self.as_raw_mut() }
-}
-
-impl ColoredKinfu_Params {
-	#[inline]
-	pub fn default() -> Result<crate::rgbd::ColoredKinfu_Params> {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_Params(ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		let ret = unsafe { crate::rgbd::ColoredKinfu_Params::opencv_from_extern(ret) };
-		Ok(ret)
-	}
-	
-	/// Constructor for Params
-	/// Sets the initial pose of the TSDF volume.
-	/// ## Parameters
-	/// * volumeInitialPoseRot: rotation matrix
-	/// * volumeInitialPoseTransl: translation vector
-	#[inline]
-	pub fn new(volume_initial_pose_rot: core::Matx33f, volume_initial_pose_transl: core::Vec3f) -> Result<crate::rgbd::ColoredKinfu_Params> {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_Params_Matx33f_Vec3f(volume_initial_pose_rot.opencv_as_extern(), volume_initial_pose_transl.opencv_as_extern(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		let ret = unsafe { crate::rgbd::ColoredKinfu_Params::opencv_from_extern(ret) };
-		Ok(ret)
-	}
-	
-	/// Constructor for Params
-	/// Sets the initial pose of the TSDF volume.
-	/// ## Parameters
-	/// * volumeInitialPose: 4 by 4 Homogeneous Transform matrix to set the intial pose of TSDF volume
-	#[inline]
-	pub fn new_1(volume_initial_pose: core::Matx44f) -> Result<crate::rgbd::ColoredKinfu_Params> {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_Params_Matx44f(volume_initial_pose.opencv_as_extern(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		let ret = unsafe { crate::rgbd::ColoredKinfu_Params::opencv_from_extern(ret) };
-		Ok(ret)
-	}
-	
-	/// Default parameters
-	/// A set of parameters which provides better model quality, can be very slow.
-	#[inline]
-	pub fn default_params() -> Result<core::Ptr<crate::rgbd::ColoredKinfu_Params>> {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_defaultParams(ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		let ret = unsafe { core::Ptr::<crate::rgbd::ColoredKinfu_Params>::opencv_from_extern(ret) };
-		Ok(ret)
-	}
-	
-	/// Coarse parameters
-	/// A set of parameters which provides better speed, can fail to match frames
-	/// in case of rapid sensor motion.
-	#[inline]
-	pub fn coarse_params() -> Result<core::Ptr<crate::rgbd::ColoredKinfu_Params>> {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_coarseParams(ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		let ret = unsafe { core::Ptr::<crate::rgbd::ColoredKinfu_Params>::opencv_from_extern(ret) };
-		Ok(ret)
-	}
-	
-	/// HashTSDF parameters
-	/// A set of parameters suitable for use with HashTSDFVolume
-	#[inline]
-	pub fn hash_tsdf_params(is_coarse: bool) -> Result<core::Ptr<crate::rgbd::ColoredKinfu_Params>> {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_hashTSDFParams_bool(is_coarse, ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		let ret = unsafe { core::Ptr::<crate::rgbd::ColoredKinfu_Params>::opencv_from_extern(ret) };
-		Ok(ret)
-	}
-	
-	/// ColoredTSDF parameters
-	/// A set of parameters suitable for use with HashTSDFVolume
-	#[inline]
-	pub fn colored_tsdf_params(is_coarse: bool) -> Result<core::Ptr<crate::rgbd::ColoredKinfu_Params>> {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_colored_kinfu_Params_coloredTSDFParams_bool(is_coarse, ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		let ret = unsafe { core::Ptr::<crate::rgbd::ColoredKinfu_Params>::opencv_from_extern(ret) };
-		Ok(ret)
-	}
-	
 }
 
 pub trait Dynafu_DynaFuConst {
@@ -1334,7 +635,7 @@ impl Kinfu_Intr_Reprojector {
 /// KinectFusion implementation
 /// 
 /// This class implements a 3d reconstruction algorithm described in
-/// [kinectfusion](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_kinectfusion) paper.
+/// [kinectfusion](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_kinectfusion) paper.
 /// 
 /// It takes a sequence of depth images taken from depth sensor
 /// (or any depth images source such as stereo camera matching algorithm or even raymarching renderer).
@@ -1342,7 +643,7 @@ impl Kinfu_Intr_Reprojector {
 /// or can be Phong-rendered from given camera pose.
 /// 
 /// An internal representation of a model is a voxel cuboid that keeps TSDF values
-/// which are a sort of distances to the surface (for details read the [kinectfusion](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_kinectfusion) article about TSDF).
+/// which are a sort of distances to the surface (for details read the [kinectfusion](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_kinectfusion) article about TSDF).
 /// There is no interface to that representation yet.
 /// 
 /// KinFu uses OpenCL acceleration automatically if available.
@@ -1375,27 +676,13 @@ pub trait Kinfu_KinFuConst {
 	/// 
 	/// ## Parameters
 	/// * image: resulting image
-	#[inline]
-	fn render(&self, image: &mut dyn core::ToOutputArray) -> Result<()> {
-		output_array_arg!(image);
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_kinfu_KinFu_render_const_const__OutputArrayR(self.as_raw_Kinfu_KinFu(), image.as_raw__OutputArray(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
-	/// Renders a volume into an image
-	/// 
-	/// Renders a 0-surface of TSDF using Phong shading into a CV_8UC4 Mat.
-	/// Light pose is fixed in KinFu params.
-	/// 
-	/// ## Parameters
-	/// * image: resulting image
 	/// * cameraPose: pose of camera to render from. If empty then render from current pose
 	///   which is a last frame camera pose.
+	/// 
+	/// ## C++ default parameters
+	/// * camera_pose: Matx44f::eye()
 	#[inline]
-	fn render_1(&self, image: &mut dyn core::ToOutputArray, camera_pose: core::Matx44f) -> Result<()> {
+	fn render(&self, image: &mut dyn core::ToOutputArray, camera_pose: core::Matx44f) -> Result<()> {
 		output_array_arg!(image);
 		return_send!(via ocvrs_return);
 		unsafe { sys::cv_kinfu_KinFu_render_const_const__OutputArrayR_const_Matx44fR(self.as_raw_Kinfu_KinFu(), image.as_raw__OutputArray(), &camera_pose, ocvrs_return.as_mut_ptr()) };
@@ -1526,7 +813,6 @@ pub trait Kinfu_ParamsTraitConst {
 		ret
 	}
 	
-	/// rgb frame size in pixels
 	#[inline]
 	fn volume_type(&self) -> crate::rgbd::Kinfu_VolumeType {
 		return_send!(via ocvrs_return);
@@ -1540,15 +826,6 @@ pub trait Kinfu_ParamsTraitConst {
 	fn intr(&self) -> core::Matx33f {
 		return_send!(via ocvrs_return);
 		unsafe { sys::cv_kinfu_Params_getPropIntr_const(self.as_raw_Kinfu_Params(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		ret
-	}
-	
-	/// rgb camera intrinsics
-	#[inline]
-	fn rgb_intr(&self) -> core::Matx33f {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_kinfu_Params_getPropRgb_intr_const(self.as_raw_Kinfu_Params(), ocvrs_return.as_mut_ptr()) };
 		return_receive!(unsafe ocvrs_return => ret);
 		ret
 	}
@@ -1708,7 +985,6 @@ pub trait Kinfu_ParamsTrait: crate::rgbd::Kinfu_ParamsTraitConst {
 		ret
 	}
 	
-	/// rgb frame size in pixels
 	#[inline]
 	fn set_volume_type(&mut self, val: crate::rgbd::Kinfu_VolumeType) {
 		let ret = unsafe { sys::cv_kinfu_Params_setPropVolumeType_VolumeType(self.as_raw_mut_Kinfu_Params(), val) };
@@ -1719,13 +995,6 @@ pub trait Kinfu_ParamsTrait: crate::rgbd::Kinfu_ParamsTraitConst {
 	#[inline]
 	fn set_intr(&mut self, val: core::Matx33f) {
 		let ret = unsafe { sys::cv_kinfu_Params_setPropIntr_Matx33f(self.as_raw_mut_Kinfu_Params(), val.opencv_as_extern()) };
-		ret
-	}
-	
-	/// rgb camera intrinsics
-	#[inline]
-	fn set_rgb_intr(&mut self, val: core::Matx33f) {
-		let ret = unsafe { sys::cv_kinfu_Params_setPropRgb_intr_Matx33f(self.as_raw_mut_Kinfu_Params(), val.opencv_as_extern()) };
 		ret
 	}
 	
@@ -1994,18 +1263,6 @@ impl Kinfu_Params {
 		Ok(ret)
 	}
 	
-	/// ColoredTSDF parameters
-	/// A set of parameters suitable for use with ColoredTSDFVolume
-	#[inline]
-	pub fn colored_tsdf_params(is_coarse: bool) -> Result<core::Ptr<crate::rgbd::Kinfu_Params>> {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_kinfu_Params_coloredTSDFParams_bool(is_coarse, ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		let ret = unsafe { core::Ptr::<crate::rgbd::Kinfu_Params>::opencv_from_extern(ret) };
-		Ok(ret)
-	}
-	
 }
 
 pub trait Kinfu_VolumeConst {
@@ -2049,18 +1306,6 @@ pub trait Kinfu_VolumeConst {
 	}
 	
 	#[inline]
-	fn raycast_1(&self, camera_pose: core::Matx44f, intrinsics: crate::rgbd::Kinfu_Intr, frame_size: core::Size, points: &mut dyn core::ToOutputArray, normals: &mut dyn core::ToOutputArray, colors: &mut dyn core::ToOutputArray) -> Result<()> {
-		output_array_arg!(points);
-		output_array_arg!(normals);
-		output_array_arg!(colors);
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_kinfu_Volume_raycast_const_const_Matx44fR_const_IntrR_const_SizeR_const__OutputArrayR_const__OutputArrayR_const__OutputArrayR(self.as_raw_Kinfu_Volume(), &camera_pose, &intrinsics, &frame_size, points.as_raw__OutputArray(), normals.as_raw__OutputArray(), colors.as_raw__OutputArray(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
-	#[inline]
 	fn fetch_normals(&self, points: &dyn core::ToInputArray, _normals: &mut dyn core::ToOutputArray) -> Result<()> {
 		input_array_arg!(points);
 		output_array_arg!(_normals);
@@ -2082,18 +1327,6 @@ pub trait Kinfu_VolumeConst {
 		Ok(ret)
 	}
 	
-	#[inline]
-	fn fetch_points_normals_colors(&self, unnamed: &mut dyn core::ToOutputArray, unnamed_1: &mut dyn core::ToOutputArray, unnamed_2: &mut dyn core::ToOutputArray) -> Result<()> {
-		output_array_arg!(unnamed);
-		output_array_arg!(unnamed_1);
-		output_array_arg!(unnamed_2);
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_kinfu_Volume_fetchPointsNormalsColors_const_const__OutputArrayR_const__OutputArrayR_const__OutputArrayR(self.as_raw_Kinfu_Volume(), unnamed.as_raw__OutputArray(), unnamed_1.as_raw__OutputArray(), unnamed_2.as_raw__OutputArray(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
 }
 
 pub trait Kinfu_Volume: crate::rgbd::Kinfu_VolumeConst {
@@ -2106,19 +1339,6 @@ pub trait Kinfu_Volume: crate::rgbd::Kinfu_VolumeConst {
 		input_array_arg!(_depth);
 		return_send!(via ocvrs_return);
 		unsafe { sys::cv_kinfu_Volume_integrate_const__InputArrayR_float_const_Matx44fR_const_IntrR_const_int(self.as_raw_mut_Kinfu_Volume(), _depth.as_raw__InputArray(), depth_factor, &camera_pose, &intrinsics, frame_id, ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
-	/// ## C++ default parameters
-	/// * frame_id: 0
-	#[inline]
-	fn integrate_1(&mut self, _depth: &dyn core::ToInputArray, _rgb: &dyn core::ToInputArray, depth_factor: f32, camera_pose: core::Matx44f, intrinsics: crate::rgbd::Kinfu_Intr, rgb_intrinsics: crate::rgbd::Kinfu_Intr, frame_id: i32) -> Result<()> {
-		input_array_arg!(_depth);
-		input_array_arg!(_rgb);
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_kinfu_Volume_integrate_const__InputArrayR_const__InputArrayR_float_const_Matx44fR_const_IntrR_const_IntrR_const_int(self.as_raw_mut_Kinfu_Volume(), _depth.as_raw__InputArray(), _rgb.as_raw__InputArray(), depth_factor, &camera_pose, &intrinsics, &rgb_intrinsics, frame_id, ocvrs_return.as_mut_ptr()) };
 		return_receive!(unsafe ocvrs_return => ret);
 		let ret = ret.into_result()?;
 		Ok(ret)
@@ -2520,7 +1740,7 @@ impl dyn Kinfu_Detail_PoseGraph + '_ {
 /// Phong-rendered from given camera pose.
 /// 
 /// An internal representation of a model is a spatially hashed voxel cube that stores TSDF values
-/// which represent the distance to the closest surface (for details read the [kinectfusion](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_kinectfusion) article
+/// which represent the distance to the closest surface (for details read the [kinectfusion](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_kinectfusion) article
 /// about TSDF). There is no interface to that representation yet.
 /// 
 /// For posegraph optimization, a Submap abstraction over the Volume class is created.
@@ -2547,18 +1767,10 @@ pub trait LargeKinfuConst {
 		Ok(ret)
 	}
 	
+	/// ## C++ default parameters
+	/// * camera_pose: Matx44f::eye()
 	#[inline]
-	fn render(&self, image: &mut dyn core::ToOutputArray) -> Result<()> {
-		output_array_arg!(image);
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_large_kinfu_LargeKinfu_render_const_const__OutputArrayR(self.as_raw_LargeKinfu(), image.as_raw__OutputArray(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		let ret = ret.into_result()?;
-		Ok(ret)
-	}
-	
-	#[inline]
-	fn render_1(&self, image: &mut dyn core::ToOutputArray, camera_pose: core::Matx44f) -> Result<()> {
+	fn render(&self, image: &mut dyn core::ToOutputArray, camera_pose: core::Matx44f) -> Result<()> {
 		output_array_arg!(image);
 		return_send!(via ocvrs_return);
 		unsafe { sys::cv_large_kinfu_LargeKinfu_render_const_const__OutputArrayR_const_Matx44fR(self.as_raw_LargeKinfu(), image.as_raw__OutputArray(), &camera_pose, ocvrs_return.as_mut_ptr()) };
@@ -2663,15 +1875,6 @@ pub trait ParamsTraitConst {
 	fn intr(&self) -> core::Matx33f {
 		return_send!(via ocvrs_return);
 		unsafe { sys::cv_large_kinfu_Params_getPropIntr_const(self.as_raw_Params(), ocvrs_return.as_mut_ptr()) };
-		return_receive!(unsafe ocvrs_return => ret);
-		ret
-	}
-	
-	/// rgb camera intrinsics
-	#[inline]
-	fn rgb_intr(&self) -> core::Matx33f {
-		return_send!(via ocvrs_return);
-		unsafe { sys::cv_large_kinfu_Params_getPropRgb_intr_const(self.as_raw_Params(), ocvrs_return.as_mut_ptr()) };
 		return_receive!(unsafe ocvrs_return => ret);
 		ret
 	}
@@ -2786,13 +1989,6 @@ pub trait ParamsTrait: crate::rgbd::ParamsTraitConst {
 	#[inline]
 	fn set_intr(&mut self, val: core::Matx33f) {
 		let ret = unsafe { sys::cv_large_kinfu_Params_setPropIntr_Matx33f(self.as_raw_mut_Params(), val.opencv_as_extern()) };
-		ret
-	}
-	
-	/// rgb camera intrinsics
-	#[inline]
-	fn set_rgb_intr(&mut self, val: core::Matx33f) {
-		let ret = unsafe { sys::cv_large_kinfu_Params_setPropRgb_intr_Matx33f(self.as_raw_mut_Params(), val.opencv_as_extern()) };
 		ret
 	}
 	

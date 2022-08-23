@@ -25,7 +25,7 @@ fn main() -> Result<()> {
 	opencv::not_opencv_branch_32! {
 		let (xml, mut cam) = {
 			(
-				core::find_file("haarcascades/haarcascade_frontalface_alt.xml", true, false)?,
+				core::find_file("haarcascades/haarcascade_profileface.xml", true, false)?,
 				videoio::VideoCapture::new(0, videoio::CAP_ANY)?, // 0 is the default camera
 			)
 		};
@@ -89,8 +89,8 @@ fn main() -> Result<()> {
 			imgproc::rectangle(
 				&mut frame,
 				scaled_face,
-				core::Scalar::new(0f64, -1f64, -1f64, -1f64),
-				1,
+				core::Scalar::new(255f64, 1f64, -1f64, -1f64),
+				10,
 				8,
 				0,
 			)?;

@@ -164,7 +164,7 @@ pub type SiftFeatureDetector = crate::features2d::SIFT;
 /// For non-Intel platforms, there is a tree optimised variant of AGAST with same numerical results.
 /// The 32-bit binary tree tables were generated automatically from original code using perl script.
 /// The perl script and examples of tree generation are placed in features2d/doc folder.
-/// Detects corners using the AGAST algorithm by [mair2010_agast](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_mair2010_agast) .
+/// Detects corners using the AGAST algorithm by [mair2010_agast](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_mair2010_agast) .
 /// 
 /// ## Overloaded parameters
 /// 
@@ -196,7 +196,7 @@ pub fn AGAST(image: &dyn core::ToInputArray, keypoints: &mut core::Vector<core::
 /// For non-Intel platforms, there is a tree optimised variant of AGAST with same numerical results.
 /// The 32-bit binary tree tables were generated automatically from original code using perl script.
 /// The perl script and examples of tree generation are placed in features2d/doc folder.
-/// Detects corners using the AGAST algorithm by [mair2010_agast](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_mair2010_agast) .
+/// Detects corners using the AGAST algorithm by [mair2010_agast](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_mair2010_agast) .
 #[inline]
 pub fn AGAST_with_type(image: &dyn core::ToInputArray, keypoints: &mut core::Vector<core::KeyPoint>, threshold: i32, nonmax_suppression: bool, typ: crate::features2d::AgastFeatureDetector_DetectorType) -> Result<()> {
 	input_array_arg!(image);
@@ -220,7 +220,7 @@ pub fn AGAST_with_type(image: &dyn core::ToInputArray, keypoints: &mut core::Vec
 /// FastFeatureDetector::TYPE_9_16, FastFeatureDetector::TYPE_7_12,
 /// FastFeatureDetector::TYPE_5_8
 /// 
-/// Detects corners using the FAST algorithm by [Rosten06](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_Rosten06) .
+/// Detects corners using the FAST algorithm by [Rosten06](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_Rosten06) .
 /// 
 /// 
 /// Note: In Python API, types are given as cv.FAST_FEATURE_DETECTOR_TYPE_5_8,
@@ -254,7 +254,7 @@ pub fn FAST(image: &dyn core::ToInputArray, keypoints: &mut core::Vector<core::K
 /// FastFeatureDetector::TYPE_9_16, FastFeatureDetector::TYPE_7_12,
 /// FastFeatureDetector::TYPE_5_8
 /// 
-/// Detects corners using the FAST algorithm by [Rosten06](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_Rosten06) .
+/// Detects corners using the FAST algorithm by [Rosten06](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_Rosten06) .
 /// 
 /// 
 /// Note: In Python API, types are given as cv.FAST_FEATURE_DETECTOR_TYPE_5_8,
@@ -378,23 +378,6 @@ pub fn draw_matches(img1: &dyn core::ToInputArray, keypoints1: &core::Vector<cor
 /// ## C++ default parameters
 /// * match_color: Scalar::all(-1)
 /// * single_point_color: Scalar::all(-1)
-/// * matches_mask: std::vector<char>()
-/// * flags: DrawMatchesFlags::DEFAULT
-#[inline]
-pub fn draw_matches_1(img1: &dyn core::ToInputArray, keypoints1: &core::Vector<core::KeyPoint>, img2: &dyn core::ToInputArray, keypoints2: &core::Vector<core::KeyPoint>, matches1to2: &core::Vector<core::DMatch>, out_img: &mut dyn core::ToInputOutputArray, matches_thickness: i32, match_color: core::Scalar, single_point_color: core::Scalar, matches_mask: &core::Vector<i8>, flags: crate::features2d::DrawMatchesFlags) -> Result<()> {
-	input_array_arg!(img1);
-	input_array_arg!(img2);
-	input_output_array_arg!(out_img);
-	return_send!(via ocvrs_return);
-	unsafe { sys::cv_drawMatches_const__InputArrayR_const_vector_KeyPoint_R_const__InputArrayR_const_vector_KeyPoint_R_const_vector_DMatch_R_const__InputOutputArrayR_const_int_const_ScalarR_const_ScalarR_const_vector_char_R_DrawMatchesFlags(img1.as_raw__InputArray(), keypoints1.as_raw_VectorOfKeyPoint(), img2.as_raw__InputArray(), keypoints2.as_raw_VectorOfKeyPoint(), matches1to2.as_raw_VectorOfDMatch(), out_img.as_raw__InputOutputArray(), matches_thickness, &match_color, &single_point_color, matches_mask.as_raw_VectorOfi8(), flags, ocvrs_return.as_mut_ptr()) };
-	return_receive!(unsafe ocvrs_return => ret);
-	let ret = ret.into_result()?;
-	Ok(ret)
-}
-
-/// ## C++ default parameters
-/// * match_color: Scalar::all(-1)
-/// * single_point_color: Scalar::all(-1)
 /// * matches_mask: std::vector<std::vector<char>>()
 /// * flags: DrawMatchesFlags::DEFAULT
 #[inline]
@@ -442,7 +425,7 @@ pub fn get_recall(recall_precision_curve: &core::Vector<core::Point2f>, l_precis
 	Ok(ret)
 }
 
-/// Class implementing the AKAZE keypoint detector and descriptor extractor, described in [ANB13](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_ANB13).
+/// Class implementing the AKAZE keypoint detector and descriptor extractor, described in [ANB13](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_ANB13).
 /// 
 /// @details AKAZE descriptors can only be used with KAZE or AKAZE keypoints. This class is thread-safe.
 /// 
@@ -639,7 +622,7 @@ impl dyn AKAZE + '_ {
 	
 }
 /// Class for implementing the wrapper which makes detectors and extractors to be affine invariant,
-/// described as ASIFT in [YM11](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_YM11) .
+/// described as ASIFT in [YM11](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_YM11) .
 pub trait AffineFeatureConst: crate::features2d::Feature2DTraitConst {
 	fn as_raw_AffineFeature(&self) -> *const c_void;
 
@@ -813,7 +796,6 @@ pub trait BFMatcherTraitConst: crate::features2d::DescriptorMatcherConst {
 	/// ## C++ default parameters
 	/// * empty_train_data: false
 	#[inline]
-	#[must_use]
 	fn clone(&self, empty_train_data: bool) -> Result<core::Ptr<dyn crate::features2d::DescriptorMatcher>> {
 		return_send!(via ocvrs_return);
 		unsafe { sys::cv_BFMatcher_clone_const_bool(self.as_raw_BFMatcher(), empty_train_data, ocvrs_return.as_mut_ptr()) };
@@ -1305,7 +1287,7 @@ pub trait BOWTrainer: crate::features2d::BOWTrainerConst {
 	
 }
 
-/// Class implementing the BRISK keypoint detector and descriptor extractor, described in [LCS11](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_LCS11) .
+/// Class implementing the BRISK keypoint detector and descriptor extractor, described in [LCS11](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_LCS11) .
 pub trait BRISKTraitConst: crate::features2d::Feature2DTraitConst {
 	fn as_raw_BRISK(&self) -> *const c_void;
 
@@ -1368,7 +1350,7 @@ pub trait BRISKTrait: crate::features2d::BRISKTraitConst + crate::features2d::Fe
 	
 }
 
-/// Class implementing the BRISK keypoint detector and descriptor extractor, described in [LCS11](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_LCS11) .
+/// Class implementing the BRISK keypoint detector and descriptor extractor, described in [LCS11](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_LCS11) .
 pub struct BRISK {
 	ptr: *mut c_void
 }
@@ -1660,7 +1642,6 @@ pub trait DescriptorMatcherConst: core::AlgorithmTraitConst {
 	/// ## C++ default parameters
 	/// * empty_train_data: false
 	#[inline]
-	#[must_use]
 	fn clone(&self, empty_train_data: bool) -> Result<core::Ptr<dyn crate::features2d::DescriptorMatcher>> {
 		return_send!(via ocvrs_return);
 		unsafe { sys::cv_DescriptorMatcher_clone_const_bool(self.as_raw_DescriptorMatcher(), empty_train_data, ocvrs_return.as_mut_ptr()) };
@@ -2308,7 +2289,6 @@ pub trait FlannBasedMatcherTraitConst: crate::features2d::DescriptorMatcherConst
 	/// ## C++ default parameters
 	/// * empty_train_data: false
 	#[inline]
-	#[must_use]
 	fn clone(&self, empty_train_data: bool) -> Result<core::Ptr<dyn crate::features2d::DescriptorMatcher>> {
 		return_send!(via ocvrs_return);
 		unsafe { sys::cv_FlannBasedMatcher_clone_const_bool(self.as_raw_FlannBasedMatcher(), empty_train_data, ocvrs_return.as_mut_ptr()) };
@@ -2596,7 +2576,7 @@ impl dyn GFTTDetector + '_ {
 	}
 	
 }
-/// Class implementing the KAZE keypoint detector and descriptor extractor, described in [ABD12](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_ABD12) .
+/// Class implementing the KAZE keypoint detector and descriptor extractor, described in [ABD12](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_ABD12) .
 /// 
 /// 
 /// Note: AKAZE descriptor can only be used with KAZE or AKAZE keypoints .. [ABD12] KAZE Features. Pablo
@@ -2877,10 +2857,10 @@ impl KeyPointsFilter {
 /// 
 /// - there are two different implementation of %MSER: one for grey image, one for color image
 /// 
-/// - the grey image algorithm is taken from: [nister2008linear](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_nister2008linear) ;  the paper claims to be faster
+/// - the grey image algorithm is taken from: [nister2008linear](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_nister2008linear) ;  the paper claims to be faster
 /// than union-find method; it actually get 1.5~2m/s on my centrino L7200 1.2GHz laptop.
 /// 
-/// - the color image algorithm is taken from: [forssen2007maximally](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_forssen2007maximally) ; it should be much slower
+/// - the color image algorithm is taken from: [forssen2007maximally](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_forssen2007maximally) ; it should be much slower
 /// than grey image method ( 3~4 times )
 /// 
 /// - (Python) A complete example showing the use of the %MSER detector can be found at samples/python/mser.py
@@ -3029,7 +3009,7 @@ impl dyn MSER + '_ {
 }
 /// Class implementing the ORB (*oriented BRIEF*) keypoint detector and descriptor extractor
 /// 
-/// described in [RRKB11](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_RRKB11) . The algorithm uses FAST in pyramids to detect stable keypoints, selects
+/// described in [RRKB11](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_RRKB11) . The algorithm uses FAST in pyramids to detect stable keypoints, selects
 /// the strongest features using FAST or Harris response, finds their orientation using first-order
 /// moments and computes the descriptors using BRIEF (where the coordinates of random point pairs (or
 /// k-tuples) are rotated according to the measured orientation).
@@ -3271,7 +3251,7 @@ impl dyn ORB + '_ {
 	
 }
 /// Class for extracting keypoints and computing descriptors using the Scale Invariant Feature Transform
-/// (SIFT) algorithm by D. Lowe [Lowe04](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_Lowe04) .
+/// (SIFT) algorithm by D. Lowe [Lowe04](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_Lowe04) .
 pub trait SIFTTraitConst: crate::features2d::Feature2DTraitConst {
 	fn as_raw_SIFT(&self) -> *const c_void;
 
@@ -3293,7 +3273,7 @@ pub trait SIFTTrait: crate::features2d::Feature2DTrait + crate::features2d::SIFT
 }
 
 /// Class for extracting keypoints and computing descriptors using the Scale Invariant Feature Transform
-/// (SIFT) algorithm by D. Lowe [Lowe04](https://docs.opencv.org/4.6.0/d0/de3/citelist.html#CITEREF_Lowe04) .
+/// (SIFT) algorithm by D. Lowe [Lowe04](https://docs.opencv.org/4.5.2/d0/de3/citelist.html#CITEREF_Lowe04) .
 pub struct SIFT {
 	ptr: *mut c_void
 }
